@@ -84,7 +84,48 @@ export default function BgRemover() {
 
       const { removeBackground: imglyRemoveBackground } = await import('@imgly/background-removal');
       const imageBlob = await imglyRemoveBackground(sanitizedBlob, config);
-      const url = URL.createObjectURL(imageBlob);
+
+      setProcessStatus('Polishing Details...');
+      
+      // Advanced Post-Processing: Enhance alpha contrast to remove faint "ghostly" backgrounds
+      const cleanBlob = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          
+          for (let i = 3; i < data.length; i += 4) {
+            // Drop very low opacity pixels (ghosting)
+            if (data[i] < 90) {
+              data[i] = 0; 
+              data[i-1] = 0; // R
+              data[i-2] = 0; // G
+              data[i-3] = 0; // B
+            } else {
+              // Professional Edge Feathering using Smoothstep (Hermite interpolation)
+              // This maps the remaining alpha range into a beautiful, buttery-smooth curve
+              let normalizedAlpha = (data[i] - 90) / 165;
+              let smoothAlpha = normalizedAlpha * normalizedAlpha * (3 - 2 * normalizedAlpha);
+              data[i] = Math.round(smoothAlpha * 255);
+            }
+          }
+          ctx.putImageData(imageData, 0, 0);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else resolve(imageBlob); // fallback
+          }, 'image/png');
+        };
+        img.onerror = () => resolve(imageBlob); // fallback
+        img.src = URL.createObjectURL(imageBlob);
+      });
+
+      const url = URL.createObjectURL(cleanBlob);
       setResultImage(url);
     } catch (error) {
       console.error("Error removing background", error);
