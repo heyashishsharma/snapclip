@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
 
           <h2 className="text-xl font-bold mt-6 mb-2">4. Cookies and Analytics</h2>
           <p className="mb-4 text-secondary">
-            We may use basic analytics tools and third-party advertising partners (like Google AdSense) that may use cookies to serve personalized ads based on your visit. You can manage your cookie preferences through your browser settings.
+            We may use basic analytics tools that may use cookies to improve your experience. You can manage your cookie preferences through your browser settings.
           </p>
 
           <h2 className="text-xl font-bold mt-6 mb-2">5. Contact Us</h2>

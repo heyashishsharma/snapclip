@@ -1,5 +1,4 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import Footer from "./components/Footer";
 
@@ -24,16 +23,6 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        <Script id="aclib" src="//acscdn.com/script/aclib.js" strategy="beforeInteractive" />
-        <Script id="aclib-init" strategy="beforeInteractive">
-          {`
-            aclib.runAutoTag({
-                zoneId: '5fnu83fpym',
-            });
-          `}
-        </Script>
-      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <Footer />
