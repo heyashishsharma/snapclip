@@ -9,26 +9,53 @@ export default function BgRemover() {
   const [resultImage, setResultImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [processStatus, setProcessStatus] = useState('Initializing...');
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
+  const processFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = (e) => setImage({ src: e.target.result, name: file.name, file });
     reader.readAsDataURL(file);
     setResultImage(null);
   };
 
+  const handleImageUpload = async (e) => {
+    processFile(e.target.files[0]);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
+
   const removeBackground = async () => {
     if (!image) return;
     setIsProcessing(true);
     setDownloadProgress(0);
+    setProcessStatus('Initializing...');
 
     try {
       const config = {
-        // Provide feedback for long-running task
+        model: 'isnet', // Enforce the highest quality model for best results
         progress: (key, current, total) => {
+          if (key.includes('fetch')) setProcessStatus('Downloading AI Model...');
+          else if (key.includes('compute')) setProcessStatus('Removing Background...');
+          else setProcessStatus('Processing...');
+          
           if (total > 0) {
             setDownloadProgress(Math.round((current / total) * 100));
           }
@@ -86,9 +113,14 @@ export default function BgRemover() {
           <p className="hero-subtitle mt-4">Instantly remove backgrounds from images using AI directly in your browser.</p>
         </section>
 
-        <div className="input-card flex flex-col items-center">
+        <div 
+          className={`input-card flex flex-col items-center transition-all ${isDragging ? 'ring-2 ring-[var(--primary)] bg-[var(--primary)]/5' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
            {!image ? (
-             <>
+             <div className="flex flex-col items-center justify-center py-10 w-full min-h-[200px]">
                <input 
                  type="file" 
                  accept="image/*" 
@@ -96,10 +128,11 @@ export default function BgRemover() {
                  id="image-upload" 
                  style={{ display: 'none' }}
                />
-               <label htmlFor="image-upload" className="btn btn-secondary cursor-pointer mb-4">
+               <span className="text-secondary font-medium mb-4">Drag & Drop Image Here</span>
+               <label htmlFor="image-upload" className="btn btn-secondary cursor-pointer">
                  <Upload size={18} className="mr-2" /> Upload Image
                </label>
-             </>
+             </div>
            ) : (
              <div className="w-full flex flex-col items-center">
                <div className="flex flex-col md:flex-row gap-8 w-full justify-center items-center mb-8">
@@ -122,13 +155,13 @@ export default function BgRemover() {
                            backgroundSize: '20px 20px',
                          }}>
                      {isProcessing ? (
-                       <div className="flex flex-col items-center justify-center p-4 text-center bg-white/80 rounded-lg shadow-sm">
-                         <Loader2 className="animate-spin text-primary mb-2" size={32} />
-                         <span className="text-sm font-medium text-main mb-1">AI Processing...</span>
-                         <span className="text-xs text-secondary">First run downloads AI models.<br/>Please wait.</span>
-                         <div className="w-full rounded-full h-1.5 mt-2" style={{ backgroundColor: '#e2e8f0', width: '80%' }}>
-                           <div className="h-1.5 rounded-full" style={{ width: `${downloadProgress}%`, backgroundColor: 'var(--primary)', transition: 'width 0.3s' }}></div>
+                       <div className="flex flex-col items-center justify-center p-4 text-center bg-white/80 rounded-lg shadow-sm w-full h-full">
+                         <Loader2 className="animate-spin text-primary mb-3" size={32} />
+                         <span className="text-sm font-medium text-main mb-1">{processStatus}</span>
+                         <div className="w-full rounded-full h-2 mt-3" style={{ backgroundColor: '#e2e8f0', width: '80%' }}>
+                           <div className="h-2 rounded-full" style={{ width: `${downloadProgress}%`, backgroundColor: 'var(--primary)', transition: 'width 0.3s' }}></div>
                          </div>
+                         <span className="text-xs font-semibold text-primary mt-2">{downloadProgress}%</span>
                        </div>
                      ) : resultImage ? (
                         <img src={resultImage} alt="Background Removed" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
