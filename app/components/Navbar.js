@@ -41,6 +41,7 @@ export default function Navbar() {
         <Link href="/" className="desktop-link">Video Downloader</Link>
         <Link href="/image-to-pdf" className="desktop-link">Image to PDF</Link>
         <Link href="/pdf-to-image" className="desktop-link">PDF to Image</Link>
+        <Link href="/pdf-edits" className="desktop-link">PDF Edits</Link>
         <Link href="/bg-remover" className="desktop-link">BG Remover</Link>
       </nav>
 
@@ -50,6 +51,7 @@ export default function Navbar() {
           <Link href="/" className="mobile-nav-link" onClick={() => setIsOpen(false)}>Video Downloader</Link>
           <Link href="/image-to-pdf" className="mobile-nav-link" onClick={() => setIsOpen(false)}>Image to PDF</Link>
           <Link href="/pdf-to-image" className="mobile-nav-link" onClick={() => setIsOpen(false)}>PDF to Image</Link>
+          <Link href="/pdf-edits" className="mobile-nav-link" onClick={() => setIsOpen(false)}>PDF Edits</Link>
           <Link href="/bg-remover" className="mobile-nav-link" onClick={() => setIsOpen(false)}>BG Remover</Link>
         </nav>
       </div>
